@@ -8,9 +8,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.bubyakin.tweetssearch.Events.EventArgs;
-import com.bubyakin.tweetssearch.Events.VoidArgs;
-import com.bubyakin.tweetssearch.Network.TwitterDataProvider;
+import com.bubyakin.tweetssearch.events.EventArgs;
+import com.bubyakin.tweetssearch.fragments.TweetListFragment;
+import com.bubyakin.tweetssearch.models.Tweet;
+import com.bubyakin.tweetssearch.network.TwitterDataProvider;
+
+import java.util.ArrayList;
 
 
 public class SearchActivity extends Activity {
@@ -19,19 +22,11 @@ public class SearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        try {
-            TwitterDataProvider.getInstance().on("beforeSend", (EventArgs v) -> {
-                Log.d("MyErrors", "START");
-            }).on("afterSend", (EventArgs v) -> {
-                Log.d("MyErrors", "FINISH");
-            });
-        } catch (Exception e) {
-            Log.d("MyErrors", e.toString());
-        }
         btn = (Button) findViewById(R.id.btnSearch);
         btn.setOnClickListener((View v) -> {
-            //ОШИБКА
-            TwitterDataProvider.getInstance().getByHashtag("Киркоров");
+            ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+            tweets = Tweet.getListByJSON(TwitterDataProvider.getInstance().getByHashtag("киркоров"));
+
         });
     }
 

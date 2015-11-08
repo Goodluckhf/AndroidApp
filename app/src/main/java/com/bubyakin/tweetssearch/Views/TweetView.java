@@ -1,4 +1,4 @@
-package com.bubyakin.tweetssearch.Views;
+package com.bubyakin.tweetssearch.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bubyakin.tweetssearch.Models.Tweet;
+import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.R;
 
 public class TweetView  extends RelativeLayout {

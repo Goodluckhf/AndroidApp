@@ -1,11 +1,11 @@
-package com.bubyakin.tweetssearch.Network;
+package com.bubyakin.tweetssearch.network;
 
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.bubyakin.tweetssearch.Events.EventTrigger;
-import com.bubyakin.tweetssearch.Events.EventsContainer;
-import com.bubyakin.tweetssearch.Events.VoidArgs;
+import com.bubyakin.tweetssearch.events.EventTrigger;
+import com.bubyakin.tweetssearch.events.EventsContainer;
+import com.bubyakin.tweetssearch.events.VoidArgs;
 
 public class RequestTask extends AsyncTask<Void, Void, Void> {
     private EventsContainer _events;
@@ -54,7 +54,9 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
         return (Void) null;
     }
 
-    protected void onPostExecute() {
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
         try {
             this._events.trigger("after", new VoidArgs());
         }

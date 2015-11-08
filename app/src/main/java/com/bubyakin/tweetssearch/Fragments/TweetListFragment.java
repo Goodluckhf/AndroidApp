@@ -1,34 +1,61 @@
-package com.bubyakin.tweetssearch.Fragments;
+package com.bubyakin.tweetssearch.fragments;
 
 import android.app.ListFragment;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bubyakin.tweetssearch.Models.Tweet;
+import com.bubyakin.tweetssearch.events.EventsContainer;
+import com.bubyakin.tweetssearch.events.JSONArgs;
+import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.TweetsAdapter;
+import com.bubyakin.tweetssearch.network.TwitterDataProvider;
 
-import java.text.DateFormat;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EventListener;
 
 public class TweetListFragment extends ListFragment {
 
-    @Override
+    private TweetsAdapter _adapter;
+    private ProgressDialog _dialog;
+
+    /*@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
-        ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-        for (int i = 0; i < 100; i++) {
-            Date date = new Date();
-            String text = String.format("Description of Item %d", i);
-            Tweet tweet = new Tweet(date, text);
-            tweets.add(tweet);
-        }
 
-        this.setListAdapter(new TweetsAdapter(this.getActivity(), tweets));
 
         return  view;
+    }*/
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        this._dialog = new ProgressDialog(this.getActivity());
+        this._dialog.setIndeterminate(true);
+        this._dialog.setCancelable(false);
+        this._dialog.setMessage("Loading...");
+        this._adapter = new TweetsAdapter(this.getActivity(), new ArrayList<Tweet>());
+        try {
+            TwitterDataProvider.getInstance().on("recieveData", (arg) -> {
+                JSONObject data = ((JSONArgs) arg).get();
+                ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+                tweets = Tweet.getListByJSON(data);
+                this._adapter.addAll(tweets);
+                this._adapter.notifyDataSetChanged();
+                this._dialog.dismiss();
+            }).on("beforeSend", (arg) -> {
+                this._adapter.clear();
+                this._dialog.show();
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        this.setListAdapter(this._adapter);
     }
 }

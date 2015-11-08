@@ -43,7 +43,7 @@
             xmlns:tools="http://schemas.android.com/tools"
             tools:context=".SearchActivity"
             android:id="@+id/tweetListFragment"
-            android:name="com.bubyakin.tweetssearch.Fragments.TweetListFragment"
+            android:name="com.bubyakin.tweetssearch.fragments.TweetListFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>

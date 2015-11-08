@@ -1,4 +1,4 @@
-package com.bubyakin.tweetssearch.Events;
+package com.bubyakin.tweetssearch.events;
 
 public class VoidArgs implements EventArgs {
 

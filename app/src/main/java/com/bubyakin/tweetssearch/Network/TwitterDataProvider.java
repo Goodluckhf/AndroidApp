@@ -1,25 +1,29 @@
-package com.bubyakin.tweetssearch.Network;
+package com.bubyakin.tweetssearch.network;
 
 import android.util.Log;
 
-import com.bubyakin.tweetssearch.Events.EventArgs;
-import com.bubyakin.tweetssearch.Events.EventTrigger;
-import com.bubyakin.tweetssearch.Events.EventsContainer;
+import com.bubyakin.tweetssearch.events.EventArgs;
+import com.bubyakin.tweetssearch.events.EventTrigger;
+import com.bubyakin.tweetssearch.events.EventsContainer;
+import com.bubyakin.tweetssearch.events.JSONArgs;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 
 public class TwitterDataProvider {
 
     private static volatile TwitterDataProvider _instance;
 
-    private HttpURLConnection _connection;
+    private HttpsURLConnection _connection;
 
     private EventsContainer _events;
 
@@ -29,7 +33,7 @@ public class TwitterDataProvider {
         _events = new EventsContainer();
         try {
             _events.register("beforeSend")
-                   .register("afterSend");
+                   .register("recieveData");
         } catch (Exception e) {
             Log.d("MyErrors", e.toString());
         }
@@ -49,15 +53,24 @@ public class TwitterDataProvider {
     private void connect(String urlString) {
         try {
             URL url = new URL(urlString);
-            this._connection = (HttpURLConnection) url.openConnection();
-            this._connection.setRequestProperty("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g");
-            this._connection.setRequestProperty("Accept-Encoding", "identity");
-            this._connection.setRequestProperty("Content-type", "text/html; charset=utf-8");
-
+            this._connection = (HttpsURLConnection) url.openConnection();
+            this._connection.setRequestProperty("Authorization", " Bearer AAAAAAAAAAAAAAAAAAAAADiJRQAAAAAAt%2Brjl%2Bqmz0rcy%2BBbuXBBsrUHGEg%3Dq0EK2aWqQMb15gCZNwZo9yqae0hpe2FDsS92WAu0g");
+            this._connection.addRequestProperty("Content-Type", "application/json; charset=utf-8");
+            if (this._connection.getResponseCode() != 200) {
+                InputStream stream =  this._connection.getErrorStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
+                while((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + this._connection.getResponseCode() + "/n" + buffer);
+            }
             this._connection.connect();
         } catch (Exception e) {
+            e.printStackTrace();
             Log.d("MyErrors", e.toString());
-        } finally {
             this.disconnect();
         }
     }
@@ -78,16 +91,18 @@ public class TwitterDataProvider {
                 buffer.append(line);
             }
             return buffer.toString();
-        } catch (Exception e) {
-            Log.d("MyErrors", this._connection.getErrorStream().toString());
-            Log.d("MyErrors", this._connection.getHeaderFields().toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             this.disconnect();
             try {
                 if(reader != null) {
                     reader.close();
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
+                e.printStackTrace();
                 Log.d("MyErrors", e.toString());
             }
         }
@@ -104,7 +119,7 @@ public class TwitterDataProvider {
     }
 
     public JSONObject getByHashtag(String q) {
-        String urlString = "http://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=15&include_entities=false";
+        String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=15&include_entities=false&lang=ru";
         RequestTask request = new RequestTask();
         try {
             request.on("before", (EventArgs v) -> {
@@ -116,15 +131,15 @@ public class TwitterDataProvider {
             }).on("process", (EventArgs v) -> {
                 try {
                     this.connect(urlString);
-
                     this._data = new JSONObject(this.getReaderData());
+
                 } catch (Exception e) {
                     Log.d("MyErrors", e.toString());
                     this.disconnect();
                 }
             }).on("after", (EventArgs v) -> {
                 try {
-                    this._events.trigger("afterSend", v);
+                    this._events.trigger("recieveData", new JSONArgs(this._data));
                 } catch (Exception e) {
                     Log.d("MyErrors", e.toString());
                 }

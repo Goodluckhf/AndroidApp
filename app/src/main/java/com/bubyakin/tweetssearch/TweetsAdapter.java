@@ -5,8 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import com.bubyakin.tweetssearch.Models.Tweet;
-import com.bubyakin.tweetssearch.Views.TweetView;
+import com.bubyakin.tweetssearch.models.Tweet;
+import com.bubyakin.tweetssearch.views.TweetView;
 
 import java.util.List;
 
