@@ -3,16 +3,40 @@ package com.bubyakin.tweetssearch.storage;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import com.bubyakin.tweetssearch.events.EventTrigger;
+import com.bubyakin.tweetssearch.events.EventsContainer;
+import com.bubyakin.tweetssearch.events.TweetListArg;
+import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.models.User;
+import com.bubyakin.tweetssearch.network.RequestTask;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+
 
 public class StorageDataProvider {
     private static volatile StorageDataProvider _instance;
     private SQLiteDatabase _db;
     private DatabaseHelper _dbHelper;
+    private Cursor _data;
+    private EventsContainer _events;
+
+    private StorageDataProvider() {
+        this._events = new EventsContainer();
+        try {
+            this._events.register("tweetRecieve")
+                        .register("userRecieve");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static StorageDataProvider getInstance() {
         if(_instance == null) {
@@ -25,10 +49,14 @@ public class StorageDataProvider {
         return _instance;
     }
 
-   /* public StorageDataProvider setContext(Context ctx) {
-        this._ctx = ctx;
+    public StorageDataProvider on(String event, EventTrigger callback) {
+        try {
+            this._events.on(event, callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
-    }*/
+    }
 
     public void open(Context ctx) {
         this._dbHelper = new DatabaseHelper(ctx);
@@ -41,119 +69,134 @@ public class StorageDataProvider {
         }
     }
 
-    public void addUsers(ArrayList<User> users) {
-        for(int i = 0; i < users.size(); i++) {
-            User user = users.get(i);
-            ContentValues cv = new ContentValues();
-            cv.put("name", user.getName());
-            cv.put("friends_count", user.getFriendsCount());
-            this._db.insert("user", null, cv);
+    private Long addUser(User user) {
+        ContentValues cv = new ContentValues();
+        cv.put("name", user.getName());
+        cv.put("friends_count", user.getFriendsCount());
+        return this._db.insert("user", null, cv);
+    }
+
+    private Long addTweet(Tweet tweet) {
+        ContentValues cv = new ContentValues();
+        cv.put("date", tweet.getDate().toString());
+        cv.put("text", tweet.getText());
+        cv.put("user_id", tweet.getUserId());
+        return this._db.insert("tweet", null, cv);
+    }
+
+    private void removeCache() {
+        this._dbHelper.dropTweetTable(this._db);
+        this._dbHelper.dropUserTable(this._db);
+        this._dbHelper.creatTweetTable(this._db);
+        this._dbHelper.creatUserTable(this._db);
+    }
+
+    private boolean hasCache() {
+        String sql = "SELECT count(id) as cnt " +
+                        "FROM tweet;";
+        Cursor cursor = this._db.rawQuery(sql, null);
+        cursor.moveToNext();
+        return cursor.getInt(cursor.getColumnIndex("cnt")) > 0;
+    }
+
+    public void cache(JSONArray list) {
+        RequestTask request = new RequestTask();
+        try {
+            request.on("process", (eventArgs) -> {
+                this.removeCache();
+                for (int i = 0; i < list.length(); i++) {
+                    try {
+                        JSONObject object = list.getJSONObject(i);
+                        User user = User.getByJSON(object);
+                        Tweet tweet = Tweet.getByJSON(object);
+                        Long userId = this.addUser(user);
+                        user.setId(userId);
+                        tweet.setUserId(userId);
+                        Long tweetId = this.addTweet(tweet);
+                        tweet.setId(tweetId);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        request.execute();
     }
 
-    /*public User getUserById(int id) {
-        *//*this._db.query("user", ,)
-        this._db.execSQL("SELECT *" +
-                            "FROM user" +
-                            "WHERE id =" + id);*//*
+    public void requestTweets() {
+        RequestTask request = new RequestTask();
+        try {
+
+            request.on("process", (eventArgs) -> {
+                if (!this.hasCache()) {
+                    Log.d("hahahaha", "lol");
+                    return;
+                }
+                String sql = "SELECT *" +
+                        "FROM tweet;";
+                this._data = this._db.rawQuery(sql, null);
+            }).on("after", (eventArgs) -> {
+                ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+                while (this._data.moveToNext()) {
+                    tweets.add(Tweet.getByCursor(this._data));
+                }
+                try {
+                    this._events.trigger("tweetRecieve", new TweetListArg(tweets));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        request.execute();
     }
 
-    public boolean removeUser(int id) {
+   /* public ArrayList<Tweet> getTweets() {
+        ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+        RequestTask request = new RequestTask();
+        try {
+            request.on("process", (eventArgs) -> {
+                Cursor cursor = this._db.rawQuery("SELECT * FROM tweet", null);
+                this._data = cursor;
 
+                while (cursor.moveToNext()) {
+                    tweets.add(Tweet.getByCursor(cursor));
+                }
+                try {
+                    this._events.trigger("tweetRecieve", new TweetListArg(tweets));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        request.execute();
+        return tweets;
     }*/
 
+    public void requestUserById(int id) {
+        RequestTask request = new RequestTask();
+        try {
+            request.on("process", (eventArgs) -> {
+                User user = new User();
+                this._data = this._db.rawQuery("SELECT *" +
+                                "FROM user" +
+                                "WHERE id = ?",
+                        new String[]{String.valueOf(id)});
+            }).on("after", (eventArg) -> {
+                try {
+                    this._events.trigger("userRecieve", User.getByCursor(this._data));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        request.execute();
+    }
 }
-
-
-
-
-/*
-import android.content.ContentValues;
-        import android.content.Context;
-        import android.database.Cursor;
-        import android.database.sqlite.SQLiteDatabase;
-        import android.database.sqlite.SQLiteDatabase.CursorFactory;
-        import android.database.sqlite.SQLiteOpenHelper;
-
-public class DB {
-
-    private static final String DB_NAME = "mydb";
-    private static final int DB_VERSION = 1;
-    private static final String DB_TABLE = "mytab";
-
-    public static final String COLUMN_ID = "_id";
-    public static final String COLUMN_IMG = "img";
-    public static final String COLUMN_TXT = "txt";
-
-    private static final String DB_CREATE =
-            "create table " + DB_TABLE + "(" +
-                    COLUMN_ID + " integer primary key autoincrement, " +
-                    COLUMN_IMG + " integer, " +
-                    COLUMN_TXT + " text" +
-                    ");";
-
-    private final Context mCtx;
-
-
-    private DBHelper mDBHelper;
-    private SQLiteDatabase mDB;
-
-    public DB(Context ctx) {
-        mCtx = ctx;
-    }
-
-    // открыть подключение
-    public void open() {
-        mDBHelper = new DBHelper(mCtx, DB_NAME, null, DB_VERSION);
-        mDB = mDBHelper.getWritableDatabase();
-    }
-
-    // закрыть подключение
-    public void close() {
-        if (mDBHelper!=null) mDBHelper.close();
-    }
-
-    // получить все данные из таблицы DB_TABLE
-    public Cursor getAllData() {
-        return mDB.query(DB_TABLE, null, null, null, null, null, null);
-    }
-
-    // добавить запись в DB_TABLE
-    public void addRec(String txt, int img) {
-        ContentValues cv = new ContentValues();
-        cv.put(COLUMN_TXT, txt);
-        cv.put(COLUMN_IMG, img);
-        mDB.insert(DB_TABLE, null, cv);
-    }
-
-    // удалить запись из DB_TABLE
-    public void delRec(long id) {
-        mDB.delete(DB_TABLE, COLUMN_ID + " = " + id, null);
-    }
-
-    // класс по созданию и управлению БД
-    private class DBHelper extends SQLiteOpenHelper {
-
-        public DBHelper(Context context, String name, CursorFactory factory,
-                        int version) {
-            super(context, name, factory, version);
-        }
-
-        // создаем и заполняем БД
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            db.execSQL(DB_CREATE);
-
-            ContentValues cv = new ContentValues();
-            for (int i = 1; i < 5; i++) {
-                cv.put(COLUMN_TXT, "sometext " + i);
-                cv.put(COLUMN_IMG, R.drawable.ic_launcher);
-                db.insert(DB_TABLE, null, cv);
-            }
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        }
-    }
-}*/

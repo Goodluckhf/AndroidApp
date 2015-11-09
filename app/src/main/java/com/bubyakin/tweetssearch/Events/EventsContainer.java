@@ -32,7 +32,7 @@ public class EventsContainer {
         return this;
     }
 
-    public void trigger(String event, EventArgs data) throws Exception {
+    public void trigger(String event, EventArg data) throws Exception {
         if(this.has(event)) {
             ArrayList<EventTrigger> list = this._events.get(event);
             for(int i = 0; i < list.size(); i++) {

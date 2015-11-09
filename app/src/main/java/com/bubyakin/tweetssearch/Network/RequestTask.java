@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
-import com.bubyakin.tweetssearch.events.VoidArgs;
+import com.bubyakin.tweetssearch.events.VoidArg;
 
 public class RequestTask extends AsyncTask<Void, Void, Void> {
     private EventsContainer _events;
@@ -36,7 +36,7 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPreExecute() {
         try {
-            this._events.trigger("before", new VoidArgs());
+            this._events.trigger("before", new VoidArg());
         }
         catch (Exception e) {
             Log.d("MyErrors", e.toString());
@@ -46,7 +46,7 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... Params) {
         try {
-            this._events.trigger("process", new VoidArgs());
+            this._events.trigger("process", new VoidArg());
         }
         catch (Exception e) {
             Log.d("MyErrors", e.toString());
@@ -58,7 +58,7 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         try {
-            this._events.trigger("after", new VoidArgs());
+            this._events.trigger("after", new VoidArg());
         }
         catch (Exception e) {
             Log.d("MyErrors", e.toString());

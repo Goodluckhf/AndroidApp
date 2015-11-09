@@ -2,16 +2,14 @@ package com.bubyakin.tweetssearch;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.bubyakin.tweetssearch.events.EventArgs;
-import com.bubyakin.tweetssearch.fragments.TweetListFragment;
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.network.TwitterDataProvider;
+import com.bubyakin.tweetssearch.storage.StorageDataProvider;
 
 import java.util.ArrayList;
 
@@ -22,6 +20,7 @@ public class SearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        StorageDataProvider.getInstance().open(getApplication());
         btn = (Button) findViewById(R.id.btnSearch);
         btn.setOnClickListener((View v) -> {
             ArrayList<Tweet> tweets = new ArrayList<Tweet>();
@@ -50,5 +49,11 @@ public class SearchActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        StorageDataProvider.getInstance().close();
     }
 }

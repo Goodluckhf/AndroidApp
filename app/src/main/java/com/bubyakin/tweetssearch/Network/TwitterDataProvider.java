@@ -2,11 +2,12 @@ package com.bubyakin.tweetssearch.network;
 
 import android.util.Log;
 
-import com.bubyakin.tweetssearch.events.EventArgs;
+import com.bubyakin.tweetssearch.events.EventArg;
 import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
-import com.bubyakin.tweetssearch.events.JSONArgs;
+import com.bubyakin.tweetssearch.events.JSONArg;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -27,7 +28,7 @@ public class TwitterDataProvider {
 
     private EventsContainer _events;
 
-    private JSONObject _data = null;
+    private JSONArray _data = null;
 
     private TwitterDataProvider() {
         _events = new EventsContainer();
@@ -118,28 +119,29 @@ public class TwitterDataProvider {
         return this._events;
     }
 
-    public JSONObject getByHashtag(String q) {
+    public JSONArray getByHashtag(String q) {
         String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=15&include_entities=false&lang=ru";
         RequestTask request = new RequestTask();
         try {
-            request.on("before", (EventArgs v) -> {
+            request.on("before", (EventArg v) -> {
                 try {
                     this._events.trigger("beforeSend", v);
                 } catch (Exception e) {
                     Log.d("MyErrors", e.toString());
                 }
-            }).on("process", (EventArgs v) -> {
+            }).on("process", (EventArg v) -> {
                 try {
                     this.connect(urlString);
-                    this._data = new JSONObject(this.getReaderData());
-
+                    JSONObject parent = new JSONObject(this.getReaderData());
+                    this._data = parent.getJSONArray("statuses");
                 } catch (Exception e) {
                     Log.d("MyErrors", e.toString());
                     this.disconnect();
                 }
-            }).on("after", (EventArgs v) -> {
+            }).on("after", (EventArg v) -> {
                 try {
-                    this._events.trigger("recieveData", new JSONArgs(this._data));
+
+                    this._events.trigger("recieveData", new JSONArg(this._data));
                 } catch (Exception e) {
                     Log.d("MyErrors", e.toString());
                 }
