@@ -26,7 +26,7 @@ public class StorageDataProvider {
     private static volatile StorageDataProvider _instance;
     private SQLiteDatabase _db;
     private DatabaseHelper _dbHelper;
-    private Cursor _data;
+    private Cursor _data = null;
     private EventsContainer _events;
 
     private StorageDataProvider() {
@@ -129,34 +129,18 @@ public class StorageDataProvider {
     }
 
     public void requestTweets() {
-        RequestTask request = new RequestTask<Cursor>();
+        RequestTask request = new RequestTask();
         try {
 
             request.on("process", (eventArgs) -> {
-                /*if (!this.hasCache()) {
-                    Log.d("hahahaha", "lol");
-                    try {
-                        request.cancel(true);
-                        this._events.trigger("cancel", new VoidArg());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    //return;
-                }*/
-
                 String sql = "SELECT *" +
                         "FROM tweet;";
                 Cursor cursor = this._db.rawQuery(sql, null);
-                cursor.moveToNext();
-                String text = cursor.getString(cursor.getColumnIndex("text"));
                 this._data = cursor;
             }).on("after", (eventArgs) -> {
                 ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-                if (eventArgs != null) {
-
-
-                    while (((Cursor)eventArgs).moveToNext()) {
+                if (this._data != null) {
+                    while (this._data.moveToNext()) {
                         tweets.add(Tweet.getByCursor(this._data));
                     }
                 }
@@ -165,8 +149,11 @@ public class StorageDataProvider {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
             });
         } catch (Exception e) {
+            Log.d("lol", "asdasdasdasdasd");
+            e.getMessage();
             e.printStackTrace();
         }
         request.execute();

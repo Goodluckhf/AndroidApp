@@ -1,5 +1,6 @@
 package com.bubyakin.tweetssearch.network;
 
+import android.content.CursorLoader;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,7 +9,7 @@ import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
 import com.bubyakin.tweetssearch.events.VoidArg;
 
-public class RequestTask<T> extends AsyncTask<Void, Void, T> {
+public class RequestTask extends AsyncTask<Void, Void, Void> {
     private EventsContainer _events;
 
     public RequestTask() {
@@ -46,7 +47,7 @@ public class RequestTask<T> extends AsyncTask<Void, Void, T> {
     }
 
     @Override
-    protected T doInBackground(Void... Params) {
+    protected Void doInBackground(Void... Params) {
         try {
             this._events.trigger("process", new VoidArg());
             //if (isCancelled()) return null;
@@ -59,10 +60,10 @@ public class RequestTask<T> extends AsyncTask<Void, Void, T> {
     }
 
     @Override
-    protected void onPostExecute(T data) {
+    protected void onPostExecute(Void data) {
         super.onPostExecute(data);
         try {
-            this._events.trigger("after", (EventArg)data);
+            this._events.trigger("after", new VoidArg());
         }
         catch (Exception e) {
             e.printStackTrace();
