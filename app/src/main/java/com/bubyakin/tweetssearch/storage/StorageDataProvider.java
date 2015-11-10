@@ -10,6 +10,7 @@ import android.util.Log;
 import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
 import com.bubyakin.tweetssearch.events.TweetListArg;
+import com.bubyakin.tweetssearch.events.VoidArg;
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.models.User;
 import com.bubyakin.tweetssearch.network.RequestTask;
@@ -32,7 +33,8 @@ public class StorageDataProvider {
         this._events = new EventsContainer();
         try {
             this._events.register("tweetRecieve")
-                        .register("userRecieve");
+                        .register("userRecieve")
+                        .register("cancel");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,11 +94,12 @@ public class StorageDataProvider {
     }
 
     private boolean hasCache() {
-        String sql = "SELECT count(id) as cnt " +
+        String sql = "SELECT count(*) as cnt " +
                         "FROM tweet;";
         Cursor cursor = this._db.rawQuery(sql, null);
         cursor.moveToNext();
-        return cursor.getInt(cursor.getColumnIndex("cnt")) > 0;
+        int count = cursor.getInt(cursor.getColumnIndex("cnt"));
+        return count > 0;
     }
 
     public void cache(JSONArray list) {
@@ -126,21 +129,36 @@ public class StorageDataProvider {
     }
 
     public void requestTweets() {
-        RequestTask request = new RequestTask();
+        RequestTask request = new RequestTask<Cursor>();
         try {
 
             request.on("process", (eventArgs) -> {
-                if (!this.hasCache()) {
+                /*if (!this.hasCache()) {
                     Log.d("hahahaha", "lol");
-                    return;
-                }
+                    try {
+                        request.cancel(true);
+                        this._events.trigger("cancel", new VoidArg());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    //return;
+                }*/
+
                 String sql = "SELECT *" +
                         "FROM tweet;";
-                this._data = this._db.rawQuery(sql, null);
+                Cursor cursor = this._db.rawQuery(sql, null);
+                cursor.moveToNext();
+                String text = cursor.getString(cursor.getColumnIndex("text"));
+                this._data = cursor;
             }).on("after", (eventArgs) -> {
                 ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-                while (this._data.moveToNext()) {
-                    tweets.add(Tweet.getByCursor(this._data));
+                if (eventArgs != null) {
+
+
+                    while (((Cursor)eventArgs).moveToNext()) {
+                        tweets.add(Tweet.getByCursor(this._data));
+                    }
                 }
                 try {
                     this._events.trigger("tweetRecieve", new TweetListArg(tweets));

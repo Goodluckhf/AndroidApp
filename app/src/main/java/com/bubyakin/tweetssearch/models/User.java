@@ -51,9 +51,10 @@ public class User  implements EventArg {
         if(object == null) {
             return null;
         }
-        User user = new User();
 
+        User user = new User();
         try {
+            object = object.getJSONObject("user");
             user.setName(object.getString("name"));
             user.setFriendsCount(object.getInt("friends_count"));
         }catch (JSONException e) {

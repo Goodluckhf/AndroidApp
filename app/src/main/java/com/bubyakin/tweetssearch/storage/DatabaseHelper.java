@@ -12,17 +12,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "Twitter_app_cache";
     private static final Integer DB_VERSION = 1;
     private static final String DB_CREATE_USER =
-        "create table IF NOT EXISTS user(" +
+        "create table user(" +
             "id integer primary key autoincrement, " +
-            "tweet_id REFERENCES tweet(id)," +
             "name varchar, " +
             "friends_count  integer" +
         ");";
 
     private static final String DB_CREATE_TWEET =
-        "create table IF NOT EXISTS tweet(" +
+        "create table tweet(" +
             "id integer primary key autoincrement, " +
-            "data varchar, " +
+            "user_id integer REFERENCES user(id)," +
+            "date varchar, " +
             "text text " +
         ");";
     private static final String DB_DROP_TWEET = "DROP TABLE IF EXISTS tweet;";

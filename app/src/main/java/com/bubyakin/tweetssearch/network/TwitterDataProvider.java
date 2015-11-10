@@ -120,7 +120,7 @@ public class TwitterDataProvider {
     }
 
     public JSONArray getByHashtag(String q) {
-        String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=15&include_entities=false&lang=ru";
+        String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=" + q + "&count=100";
         RequestTask request = new RequestTask();
         try {
             request.on("before", (EventArg v) -> {

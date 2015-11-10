@@ -3,11 +3,12 @@ package com.bubyakin.tweetssearch.network;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.bubyakin.tweetssearch.events.EventArg;
 import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
 import com.bubyakin.tweetssearch.events.VoidArg;
 
-public class RequestTask extends AsyncTask<Void, Void, Void> {
+public class RequestTask<T> extends AsyncTask<Void, Void, T> {
     private EventsContainer _events;
 
     public RequestTask() {
@@ -16,10 +17,11 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
         try {
             _events.register("before")
                    .register("after")
-                   .register("process");
+                   .register("process")
+                   .register("cancel");
         }
         catch(Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -28,7 +30,7 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
             this._events.on(event, callback);
         }
         catch(Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
         return this._events;
     }
@@ -39,29 +41,41 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
             this._events.trigger("before", new VoidArg());
         }
         catch (Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
     }
 
     @Override
-    protected Void doInBackground(Void... Params) {
+    protected T doInBackground(Void... Params) {
         try {
             this._events.trigger("process", new VoidArg());
+            //if (isCancelled()) return null;
+           // this.cancel(true);
         }
         catch (Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
-        return (Void) null;
+        return null;
     }
 
     @Override
-    protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
+    protected void onPostExecute(T data) {
+        super.onPostExecute(data);
         try {
-            this._events.trigger("after", new VoidArg());
+            this._events.trigger("after", (EventArg)data);
         }
         catch (Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
+    }
+    protected void onCancelled() {
+        super.onCancelled();
+        try {
+            this._events.trigger("cancel", new VoidArg());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

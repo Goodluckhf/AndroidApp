@@ -41,12 +41,14 @@ public class TweetListFragment extends ListFragment {
             this._adapter.addAll(tweets);
             this._adapter.notifyDataSetChanged();
             this._dialog.dismiss();
+        }).on("cancel", (eventArgs) -> {
+            this._dialog.dismiss();
         });
         this._dialog = new ProgressDialog(this.getActivity());
         this._dialog.setIndeterminate(true);
         this._dialog.setCancelable(false);
         this._dialog.setMessage("Loading...");
-        this._dialog.show();
+       // this._dialog.show();
         StorageDataProvider.getInstance().requestTweets();
         try {
             TwitterDataProvider.getInstance().on("recieveData", (arg) -> {
