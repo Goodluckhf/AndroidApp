@@ -93,15 +93,6 @@ public class StorageDataProvider {
         this._dbHelper.creatUserTable(this._db);
     }
 
-    private boolean hasCache() {
-        String sql = "SELECT count(*) as cnt " +
-                        "FROM tweet;";
-        Cursor cursor = this._db.rawQuery(sql, null);
-        cursor.moveToNext();
-        int count = cursor.getInt(cursor.getColumnIndex("cnt"));
-        return count > 0;
-    }
-
     public void cache(JSONArray list) {
         RequestTask request = new RequestTask();
         try {

@@ -11,6 +11,9 @@ import android.widget.TextView;
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.network.TwitterDataProvider;
 import com.bubyakin.tweetssearch.storage.StorageDataProvider;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.util.ArrayList;
 
@@ -22,17 +25,17 @@ public class SearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        StorageDataProvider.getInstance().open(getApplicationContext());
         btnSearch = (Button) findViewById(R.id.btnSearch);
         txtSearch = (TextView) findViewById(R.id.txtSearch);
         btnSearch.setOnClickListener((View v) -> {
             //ArrayList<Tweet> tweets = new ArrayList<Tweet>();
             String SearchValue = txtSearch.getEditableText().toString();
-            if(SearchValue.isEmpty()) {
+            if (SearchValue.isEmpty()) {
                 return;
             }
             Tweet.getListByJSON(TwitterDataProvider.getInstance().getByHashtag(SearchValue));
         });
+
     }
 
     @Override

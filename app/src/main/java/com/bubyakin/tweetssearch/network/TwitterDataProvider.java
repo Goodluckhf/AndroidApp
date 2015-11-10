@@ -14,8 +14,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -120,7 +122,13 @@ public class TwitterDataProvider {
     }
 
     public JSONArray getByHashtag(String q) {
-        String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=" + q + "&count=100";
+       // String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=100";
+        String urlString;
+        try {
+            urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + URLEncoder.encode(q, "UTF-8") + "&count=100";
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 not supported", e);
+        }
         RequestTask request = new RequestTask();
         try {
             request.on("before", (EventArg v) -> {

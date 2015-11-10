@@ -47,6 +47,7 @@ public class TweetListFragment extends ListFragment {
         StorageDataProvider.getInstance().requestTweets();
         try {
             TwitterDataProvider.getInstance().on("recieveData", (arg) -> {
+                this._adapter.clear();
                 JSONArray data = ((JSONArg) arg).get();
                 StorageDataProvider.getInstance().cache(data);
                 ArrayList<Tweet> tweets = new ArrayList<Tweet>();
@@ -68,8 +69,11 @@ public class TweetListFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
+
         Long tweetId = this._adapter.getItem(position).getId();
         Log.d("LOG", "ID: " + String.valueOf(tweetId));
+        Log.d("LOG", "itemId: " + this._adapter.getItemId(position));
+        Log.d("LOG", "position: " + position);
         Intent intent = new Intent(getActivity(), DetailActivity.class);
         intent.putExtra("id", tweetId);
         startActivity(intent);

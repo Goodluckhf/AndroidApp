@@ -15,7 +15,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         "create table user(" +
             "id integer primary key autoincrement, " +
             "name varchar, " +
-            "friends_count  integer" +
+            "friends_count  integer," +
+            "image_uri  string" +
         ");";
 
     private static final String DB_CREATE_TWEET =

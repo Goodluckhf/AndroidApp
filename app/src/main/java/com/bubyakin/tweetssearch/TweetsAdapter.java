@@ -27,11 +27,4 @@ public class TweetsAdapter extends ArrayAdapter<Tweet> {
         return tweetView;
     }
 
-    /*@Override
-    public long getItemId(int position) {
-        return this.getItem(position).getId();
-    }*/
-
-
-
 }
