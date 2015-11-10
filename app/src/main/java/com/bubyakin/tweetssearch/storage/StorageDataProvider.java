@@ -159,39 +159,23 @@ public class StorageDataProvider {
         request.execute();
     }
 
-   /* public ArrayList<Tweet> getTweets() {
-        ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-        RequestTask request = new RequestTask();
-        try {
-            request.on("process", (eventArgs) -> {
-                Cursor cursor = this._db.rawQuery("SELECT * FROM tweet", null);
-                this._data = cursor;
-
-                while (cursor.moveToNext()) {
-                    tweets.add(Tweet.getByCursor(cursor));
-                }
-                try {
-                    this._events.trigger("tweetRecieve", new TweetListArg(tweets));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        request.execute();
-        return tweets;
-    }*/
-
-    public void requestUserById(int id) {
+    public void requestUserByTweetId(long id) {
         RequestTask request = new RequestTask();
         try {
             request.on("process", (eventArgs) -> {
                 User user = new User();
-                this._data = this._db.rawQuery("SELECT *" +
-                                "FROM user" +
+                /*this._data = this._db.rawQuery("SELECT * " +
+                                "FROM user " +
+                                "WHERE id = (SELECT user_id " +
+                                "FROM tweet " +
+                                "WHERE id = ?" +
+                                ")",
+                        new String[]{String.valueOf(id)});*/
+                this._data = this._db.rawQuery("SELECT * " +
+                                "FROM user " +
                                 "WHERE id = ?",
                         new String[]{String.valueOf(id)});
+                this._data.moveToNext();
             }).on("after", (eventArg) -> {
                 try {
                     this._events.trigger("userRecieve", User.getByCursor(this._data));

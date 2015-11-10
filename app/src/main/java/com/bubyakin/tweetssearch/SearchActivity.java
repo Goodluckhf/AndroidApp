@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.network.TwitterDataProvider;
@@ -15,17 +16,22 @@ import java.util.ArrayList;
 
 
 public class SearchActivity extends Activity {
-    Button btn;
+    Button btnSearch;
+    TextView txtSearch;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        StorageDataProvider.getInstance().open(getApplication());
-        btn = (Button) findViewById(R.id.btnSearch);
-        btn.setOnClickListener((View v) -> {
-            ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-            tweets = Tweet.getListByJSON(TwitterDataProvider.getInstance().getByHashtag("киркоров"));
-
+        StorageDataProvider.getInstance().open(getApplicationContext());
+        btnSearch = (Button) findViewById(R.id.btnSearch);
+        txtSearch = (TextView) findViewById(R.id.txtSearch);
+        btnSearch.setOnClickListener((View v) -> {
+            //ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+            String SearchValue = txtSearch.getEditableText().toString();
+            if(SearchValue.isEmpty()) {
+                return;
+            }
+            Tweet.getListByJSON(TwitterDataProvider.getInstance().getByHashtag(SearchValue));
         });
     }
 
@@ -49,11 +55,5 @@ public class SearchActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        StorageDataProvider.getInstance().close();
     }
 }

@@ -1,10 +1,15 @@
 package com.bubyakin.tweetssearch.fragments;
 
+import android.app.LauncherActivity;
 import android.app.ListFragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
 
+import com.bubyakin.tweetssearch.DetailActivity;
 import com.bubyakin.tweetssearch.events.JSONArg;
 import com.bubyakin.tweetssearch.events.TweetListArg;
 import com.bubyakin.tweetssearch.models.Tweet;
@@ -22,14 +27,6 @@ public class TweetListFragment extends ListFragment {
     private TweetsAdapter _adapter;
     private ProgressDialog _dialog;
 
-    /*@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-
-
-
-        return  view;
-    }*/
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -65,5 +62,16 @@ public class TweetListFragment extends ListFragment {
             e.printStackTrace();
         }
         this.setListAdapter(this._adapter);
+
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        Long tweetId = this._adapter.getItem(position).getId();
+        Log.d("LOG", "ID: " + String.valueOf(tweetId));
+        Intent intent = new Intent(getActivity(), DetailActivity.class);
+        intent.putExtra("id", tweetId);
+        startActivity(intent);
     }
 }

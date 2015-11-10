@@ -8,9 +8,11 @@ import android.widget.ArrayAdapter;
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.views.TweetView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TweetsAdapter extends ArrayAdapter<Tweet> {
+
 
     public TweetsAdapter(Context ctx, List<Tweet> tweets) {
         super(ctx, 0, tweets);
@@ -24,4 +26,12 @@ public class TweetsAdapter extends ArrayAdapter<Tweet> {
         tweetView.setTweet(this.getItem(position));
         return tweetView;
     }
+
+    /*@Override
+    public long getItemId(int position) {
+        return this.getItem(position).getId();
+    }*/
+
+
+
 }
