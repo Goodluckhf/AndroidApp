@@ -64,6 +64,9 @@ public class Tweet {
         try {
             tweet.setDate(new Date(object.getString("created_at")));
             tweet.setText(object.getString("text"));
+            tweet.setId(object.getLong("id"));
+            User user = User.getByJSON(object);
+            tweet.setUserId(user.getId());
         }catch (JSONException e) {
             e.printStackTrace();
         }
@@ -90,6 +93,7 @@ public class Tweet {
         tweet.setText(tweetCursor.getString(tweetCursor.getColumnIndex("text")));
         tweet.setDate(new Date(tweetCursor.getString(tweetCursor.getColumnIndex("date"))));
         tweet.setId(tweetCursor.getLong(tweetCursor.getColumnIndex("id")));
+        tweet.setUserId(tweetCursor.getLong(tweetCursor.getColumnIndex("user_id")));
         return tweet;
     }
 

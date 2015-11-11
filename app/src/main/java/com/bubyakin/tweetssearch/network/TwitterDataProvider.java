@@ -38,7 +38,7 @@ public class TwitterDataProvider {
             _events.register("beforeSend")
                    .register("recieveData");
         } catch (Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -73,7 +73,6 @@ public class TwitterDataProvider {
             this._connection.connect();
         } catch (Exception e) {
             e.printStackTrace();
-            Log.d("MyErrors", e.toString());
             this.disconnect();
         }
     }
@@ -106,7 +105,6 @@ public class TwitterDataProvider {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d("MyErrors", e.toString());
             }
         }
         return null;
@@ -116,13 +114,12 @@ public class TwitterDataProvider {
         try {
             this._events.on(event, callback);
         } catch (Exception e) {
-            Log.d("MyErrors", e.toString());
+            e.printStackTrace();
         }
         return this._events;
     }
 
     public JSONArray getByHashtag(String q) {
-       // String urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + q + "&count=100";
         String urlString;
         try {
             urlString = "https://api.twitter.com/1.1/search/tweets.json?q=%23" + URLEncoder.encode(q, "UTF-8") + "&count=100";

@@ -10,7 +10,6 @@ import android.util.Log;
 import com.bubyakin.tweetssearch.events.EventTrigger;
 import com.bubyakin.tweetssearch.events.EventsContainer;
 import com.bubyakin.tweetssearch.events.TweetListArg;
-import com.bubyakin.tweetssearch.events.VoidArg;
 import com.bubyakin.tweetssearch.models.Tweet;
 import com.bubyakin.tweetssearch.models.User;
 import com.bubyakin.tweetssearch.network.RequestTask;
@@ -74,16 +73,19 @@ public class StorageDataProvider {
     private Long addUser(User user) {
         ContentValues cv = new ContentValues();
         cv.put("name", user.getName());
+        cv.put("id", user.getId());
         cv.put("friends_count", user.getFriendsCount());
-        return this._db.insert("user", null, cv);
+        cv.put("image_uri", user.getImageUri());
+        return this._db.insertWithOnConflict("user", null, cv, this._db.CONFLICT_IGNORE);
     }
 
     private Long addTweet(Tweet tweet) {
         ContentValues cv = new ContentValues();
         cv.put("date", tweet.getDate().toString());
+        cv.put("id", tweet.getId());
         cv.put("text", tweet.getText());
         cv.put("user_id", tweet.getUserId());
-        return this._db.insert("tweet", null, cv);
+        return this._db.insertWithOnConflict("tweet", null, cv, this._db.CONFLICT_IGNORE);
     }
 
     private void removeCache() {
@@ -103,11 +105,12 @@ public class StorageDataProvider {
                         JSONObject object = list.getJSONObject(i);
                         User user = User.getByJSON(object);
                         Tweet tweet = Tweet.getByJSON(object);
-                        Long userId = this.addUser(user);
-                        user.setId(userId);
-                        tweet.setUserId(userId);
-                        Long tweetId = this.addTweet(tweet);
-                        tweet.setId(tweetId);
+                        this.addUser(user);
+                        this.addTweet(tweet);
+                        Cursor cursor = this._db.rawQuery("SELECT * FROM user WHERE id = (SELECT user_id FROM tweet where id = ?);", new String[] {String.valueOf(tweet.getId())});
+                        while (cursor.moveToNext()) {
+                            Log.d("log", "uri: " + cursor.getString(cursor.getColumnIndex("image_uri")) + '\n');
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -122,7 +125,6 @@ public class StorageDataProvider {
     public void requestTweets() {
         RequestTask request = new RequestTask();
         try {
-
             request.on("process", (eventArgs) -> {
                 String sql = "SELECT *" +
                         "FROM tweet;";
@@ -143,7 +145,6 @@ public class StorageDataProvider {
 
             });
         } catch (Exception e) {
-            Log.d("lol", "asdasdasdasdasd");
             e.getMessage();
             e.printStackTrace();
         }
@@ -155,16 +156,12 @@ public class StorageDataProvider {
         try {
             request.on("process", (eventArgs) -> {
                 User user = new User();
-                /*this._data = this._db.rawQuery("SELECT * " +
-                                "FROM user " +
-                                "WHERE id = (SELECT user_id " +
-                                "FROM tweet " +
-                                "WHERE id = ?" +
-                                ")",
-                        new String[]{String.valueOf(id)});*/
                 this._data = this._db.rawQuery("SELECT * " +
                                 "FROM user " +
-                                "WHERE id = ?",
+                                "WHERE id = (" +
+                                    "SELECT user_id " +
+                                    "FROM tweet " +
+                                    "WHERE id = ?);",
                         new String[]{String.valueOf(id)});
                 this._data.moveToNext();
             }).on("after", (eventArg) -> {

@@ -50,8 +50,6 @@ public class RequestTask extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... Params) {
         try {
             this._events.trigger("process", new VoidArg());
-            //if (isCancelled()) return null;
-           // this.cancel(true);
         }
         catch (Exception e) {
             e.printStackTrace();

@@ -1,11 +1,9 @@
 package com.bubyakin.tweetssearch.fragments;
 
-import android.app.LauncherActivity;
 import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
@@ -18,7 +16,6 @@ import com.bubyakin.tweetssearch.network.TwitterDataProvider;
 import com.bubyakin.tweetssearch.storage.StorageDataProvider;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -37,14 +34,12 @@ public class TweetListFragment extends ListFragment {
             ArrayList<Tweet> tweets = ((TweetListArg) tweetsArg).getTweets();
             this._adapter.addAll(tweets);
             this._adapter.notifyDataSetChanged();
-            //this._dialog.dismiss();
         });
+        StorageDataProvider.getInstance().requestTweets();
         this._dialog = new ProgressDialog(this.getActivity());
         this._dialog.setIndeterminate(true);
         this._dialog.setCancelable(false);
         this._dialog.setMessage("Loading...");
-        //this._dialog.show();
-        StorageDataProvider.getInstance().requestTweets();
         try {
             TwitterDataProvider.getInstance().on("recieveData", (arg) -> {
                 this._adapter.clear();
@@ -69,11 +64,7 @@ public class TweetListFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-
         Long tweetId = this._adapter.getItem(position).getId();
-        Log.d("LOG", "ID: " + String.valueOf(tweetId));
-        Log.d("LOG", "itemId: " + this._adapter.getItemId(position));
-        Log.d("LOG", "position: " + position);
         Intent intent = new Intent(getActivity(), DetailActivity.class);
         intent.putExtra("id", tweetId);
         startActivity(intent);

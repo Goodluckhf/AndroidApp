@@ -67,6 +67,7 @@ public class User  implements EventArg {
             user.setName(object.getString("name"));
             user.setFriendsCount(object.getInt("friends_count"));
             user.setImageURI(object.getString("profile_image_url"));
+            user.setId(object.getLong("id"));
         }catch (JSONException e) {
             e.printStackTrace();
         }

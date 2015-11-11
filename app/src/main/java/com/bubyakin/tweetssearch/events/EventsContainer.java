@@ -27,7 +27,7 @@ public class EventsContainer {
             this._events.get(event).add(callback);
         }
         else {
-            throw new Exception("Error! already has event");
+            throw new Exception("Error! there is no such event");
         }
         return this;
     }
@@ -40,7 +40,7 @@ public class EventsContainer {
             }
         }
         else {
-            throw new Exception("Error! already has event");
+            throw new Exception("Error! there is no such event");
         }
     }
     public void trigger(String event) throws Exception {
@@ -51,7 +51,7 @@ public class EventsContainer {
             }
         }
         else {
-            throw new Exception("Error! already has event");
+            throw new Exception("Error! there is no such event");
         }
     }
 
